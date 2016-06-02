@@ -1,0 +1,81 @@
+<?php
+
+namespace XandrieBundle\Tools\Charts;
+
+use XandrieBundle\XandrieBundle;
+
+
+class Pie extends AbstractChart {
+	
+	
+	public function __construct($type){
+		parent::setType($type);
+		parent::setOptionplot(array(
+								'pie' => array(
+										'allowPointSelect' 	=> false,
+										'cursor' 	 		=> 'pointer',
+										'dataLabels' 		=> array(
+																'enabled' => true,
+																'format'  => '{point.name}: {point.percentage:.1f} %' 
+										),
+								)
+		));
+	}
+	
+	
+	
+	/**
+	 * @see \XandrieBundle\Tools\Charts\AbstractChart::build()
+	 */
+	public function build(array $array){
+		$struct = array ();
+		$data   = array ();
+		$json	= null;
+		
+		if(!is_null($array['data'])){
+			
+			unset($array['data']['option']);unset($array['data']['objecttype']);
+			
+			foreach ($array['data'] as $value){
+					
+				$seriesData = array (
+						'id'				=> $value[$array['seriename']],
+						'name' 				=> $value[$array['columnname']],
+						'reference'			=> (isset($array['default']) || $array['dropdown_selected'])?'default':uniqid(),
+						'y' 				=> (int) $value['TOTAL_HOUR'],
+						'events' 			=> array('click' => null),
+						'path'				=> $array['path'],
+						//'next_groupby'		=> $array['next_groupby']
+				);
+				array_push($data, $seriesData);
+			}
+				
+			
+			$series = array (
+					'name' 	=> $array['seriename'],
+					'data' 	=> $data,
+					//'id'	=> $array['seriename'],
+			);
+			
+			
+			$struct = array (
+							'chart' 		=> array(
+												'plotBackgroundColor'	=> null,
+												'plotBorderWidth' 		=> null,
+												'plotShadow' 			=> false,
+												'type' 					=> $this->getType(),
+							),
+							'credits' 			=> array('enabled' => false),
+							'title' 			=> array('text' => $this->getTitle()),
+							'tooltip' 			=> array('pointFormat' => '{point.name}: {point.percentage:.1f}%'),
+							'plotOptions' 		=> $this->getOptionplot(),
+							'series' 			=> array($series),
+			);
+			
+			$json = json_encode($struct, JSON_PRETTY_PRINT);
+		}
+		return $json;
+	}
+	
+	
+}
